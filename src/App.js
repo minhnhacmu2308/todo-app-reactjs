@@ -8,34 +8,20 @@ class App extends Component {
     super(props);
     this.state = {
       tasks:[
-        {
-          id:1,
-          name: 'Đi chơi cầu lông',
-          status: true
-        },
-        {
-          id: 2,
-          name: 'Đi chơi bóng đá',
-          status: false
-        },
-        {
-          id: 3,
-          name: 'Đi chơi bóng chuyền',
-          status: true
-        },
-        {
-          id: 4,
-          name: 'Đi chơi bơi lội',
-          status: true
-        },
       ],
-      isShowtaskform:false
+      isShowtaskform:false,
+      taskEditting:null
     }
   }
-  showTaskform=()=>{
-   
-    this.setState({isShowtaskform:!this.state.isShowtaskform})
+  componentWillMount(){
+    if(localStorage && localStorage.getItem('tasklist')){
+      var tasks =JSON.parse(localStorage.getItem('tasklist'))
+      this.setState({
+        tasks: tasks
+    })
+    }
   }
+ 
   onGenerateData = () => {
     let tasks = [
       {
@@ -63,7 +49,6 @@ class App extends Component {
         tasks: tasks
     })
     localStorage.setItem('tasklist',JSON.stringify(tasks))
-    console.log(this.state.tasks)
   }
   s4(){
     return Math.floor((1+Math.random())*0x10000).toString(16).substring(1)
@@ -71,9 +56,84 @@ class App extends Component {
   generateID(){
     return this.s4()+this.s4()+'-'+this.s4()+'-'+this.s4()+this.s4();
   }
+  onSubmit=(data)=>{
+      let {tasks}=this.state;
+      if(data.id===''){
+        data.id=this.generateID();
+        tasks.push(data);
+        this.setState({tasks:tasks});
+        localStorage.setItem('tasklist',JSON.stringify(tasks))
+      }else{
+        let index=this.findIndex(data.id);
+        tasks[index]=data;
+        this.setState({tasks:tasks,taskEditting:null});
+        localStorage.setItem('tasklist',JSON.stringify(tasks))
+      }
+     
+     
+  }
+  showTaskform=()=>{
+    if(this.state.isShowtaskform && this.state.taskEditting!==null){
+      this.setState({isShowtaskform:true,taskEditting:null});
+    }else{
+      this.setState({isShowtaskform:true})
+    }
+  }
+  onClear=()=>{
+    this.setState({
+      name:'',
+      status:false
+    })
+  }
+  onDelete=(data)=>{
+    let {tasks}=this.state;
+    let index=this.findIndex(data);
+     if(index!==-1){
+       tasks.splice(index,1)
+       this.setState({tasks:tasks});
+     }
+     localStorage.setItem('tasklist',JSON.stringify(tasks))
+  }
+  onUpdataStatus=(data)=>{
+    let {tasks}=this.state;
+    let index=this.findIndex(data);
+     if(index!==-1){
+       tasks[index].status=!tasks[index].status;
+       this.setState({tasks:tasks});
+     }
+     localStorage.setItem('tasklist',JSON.stringify(tasks))
+
+    
+  }
+  findIndex =(id)=>{
+    let {tasks}=this.state;
+    let result=-1;
+    tasks.forEach((task,index)=>{
+      if(task.id===id){
+        result=index;
+      }
+    });
+    return result;
+  }
+  onCloseForm=()=>{
+    this.setState({isShowtaskform:false});
+  } 
+  onOpenForm=()=>{
+    this.setState({isShowtaskform:true});
+  }
+  onEdit=(data)=>{
+    let {tasks}=this.state;
+    let index=this.findIndex(data);
+    let taskEditting =tasks[index];
+    this.setState({taskEditting:taskEditting})
+    this.onOpenForm();
+  }
   render() {
-    let {tasks,isShowtaskform}=this.state;
-    let elemTaskform=isShowtaskform===true?<Taskform showTaskform={this.showTaskform}/>:null
+    let {tasks,isShowtaskform,taskEditting}=this.state;
+    let elemTaskform=isShowtaskform===true?<Taskform 
+    showTaskform={this.onCloseForm} onSubmit={this.onSubmit} 
+     task={taskEditting}
+    onClear={this.onClear}/>:null
     return (
       <div className="container">
         <div className="text-center">
@@ -95,17 +155,11 @@ class App extends Component {
               
               ></span>Thêm Công Việc
               </button>
-            <button
-              type="button"
-              className="btn btn-danger mt-5"
-              onClick={this.onGenerateData}
-            >
-              <span className="fa fa-plus mr-5"></span>Tạo dữ liệu mẫu
-              </button>
+       
             <Control />
             <div className="row mt-15">
               <div className="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                <Table tasks={this.state.tasks}/>
+                <Table tasks={tasks} onEdit={this.onEdit} showTaskform={this.onCloseForm} onUpdataStatus={this.onUpdataStatus} onDelete={this.onDelete}/>
               </div>
             </div>
           </div>

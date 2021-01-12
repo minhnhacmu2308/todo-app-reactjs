@@ -4,34 +4,20 @@ class Table extends Component {
     constructor(props) {
         super(props);
         this.state = {
-          tasks:[
-            {
-              id:1,
-              name: 'Đi chơi cầu lông',
-              status: true
-            },
-            {
-              id: 2,
-              name: 'Đi chơi bóng đá',
-              status: false
-            },
-            {
-              id: 3,
-              name: 'Đi chơi bóng chuyền',
-              status: true
-            },
-            {
-              id: 4,
-              name: 'Đi chơi bơi lội',
-              status: true
-            },
-          ]
+       
         }
       }
     render() {
-        var { Tasks }=this.props;
-        var elementTasks=this.props.tasks.map((task,index)=>{
-            return <Taskitem key={task.id} index={index} task={task}/>
+        var { tasks }=this.props;
+        var elementTasks=tasks.map((task,index)=>{
+            return <Taskitem
+             key={task.id} 
+             index={index} 
+             task={task}
+             onUpdataStatus={this.props.onUpdataStatus}
+             onDelete={this.props.onDelete}
+             showTaskform={this.props.showTaskform} 
+             onEdit={this.props.onEdit}/>
         })
         return (
             <table className="table table-bordered table-hover mt-15">
@@ -58,7 +44,7 @@ class Table extends Component {
                         </td>
                         <td></td>
                     </tr>
-                   {elementTasks}
+                    {elementTasks}
                    
                 </tbody>
             </table>
